@@ -7,15 +7,17 @@ import pickle
 import numpy as np
 import math
 
+# The ID and range of a sample spreadsheet.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 MY_GOOGLE_SHEET_ID = '1DCZ5lmPCBybMiWXyG7tscTj0YJlmwOZQU1eT_9NlZmg'
-MY_SHEET_CELLS_RANGE = 'A1:H27'
+SAMPLE_READ_RANGE = 'A1:H27'
 
-# The ID and range of a sample spreadsheet.
-SAMPLE_SPREADSHEET_ID_input = MY_GOOGLE_SHEET_ID
-SAMPLE_RANGE_NAME = MY_SHEET_CELLS_RANGE
+#Write range is different since the first two rows are headers
+SAMPLE_WRITE_RANGE = 'A3:H27'
 
-def main():
+#function to read data from a google spreadsheet with id MY_GOOGLE_SHEET_ID
+#code written according to google's api (https://developers.google.com/sheets/api/quickstart/python)
+def read_spreadsheet():
     global values_input, service
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
@@ -40,8 +42,8 @@ def main():
 
     # Call the Sheets API
     sheet = service.spreadsheets()
-    result_input = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID_input,
-                                range=SAMPLE_RANGE_NAME).execute()
+    result_input = sheet.values().get(spreadsheetId=MY_GOOGLE_SHEET_ID,
+                                range=SAMPLE_READ_RANGE).execute()
     values_input = result_input.get('values', [])
 
     if not values_input and not values_expansion:
@@ -53,7 +55,6 @@ def calc_final_score(mean_score):
     return math.ceil(10 - mean_score)
 
 #function to grade student based on their mean test score
-#returns a new pandas dataframe
 def grade_student (student):
     absence = int(student[2])
 
@@ -73,21 +74,40 @@ def grade_student (student):
             student[7] = 0
     return student
 
+def export_data_to_sheets(df):
+    response_date = service.spreadsheets().values().update(
+        spreadsheetId=MY_GOOGLE_SHEET_ID,
+        valueInputOption='RAW',
+        range=SAMPLE_WRITE_RANGE,
+        body=dict(
+            majorDimension='ROWS',
+            values=df.T.reset_index().T.values.tolist())
+        ).execute()
+    print('Sheet successfully Updated')
+
+def main():
+    read_spreadsheet()
+
+    #fill missing values in all cells with NaN
+    #necessary to create pandas dataframe
+    for values in values_input[3:]:
+        if (len(values) == 6):
+            values.extend([np.nan, np.nan])
+
+    #create dataframe
+    df=pd.DataFrame(values_input[3:], columns=values_input[2])
+
+    #print(df)
+
+    #extract the number of total classes in a semester
+    global total_classes
+    total_classes = int("".join(filter(str.isdigit, values_input[1][0])))
+
+    #grade every student
+    df = df.apply(grade_student, axis=1)
+
+    #print(df)
+
+    export_data_to_sheets(df)
+
 main()
-
-#fill missing values in all cells with NaN
-#necessary to create pandas dataframe
-for values in values_input[3:]:
-    values.extend([np.nan, np.nan])
-
-#create dataframe
-df=pd.DataFrame(values_input[3:], columns=values_input[2])
-
-#extract the number of total classes in a semester
-global total_classes
-total_classes = int("".join(filter(str.isdigit, values_input[1][0])))
-
-#grade every student
-df = df.apply(grade_student, axis=1)
-
-print(df)

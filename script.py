@@ -10,10 +10,10 @@ import math
 # The ID and range of a sample spreadsheet.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 MY_GOOGLE_SHEET_ID = '1DCZ5lmPCBybMiWXyG7tscTj0YJlmwOZQU1eT_9NlZmg'
-SAMPLE_READ_RANGE = 'A1:H27'
+SAMPLE_READ_RANGE = 'A1:H'
 
 #Write range is different since the first two rows are headers
-SAMPLE_WRITE_RANGE = 'A3:H27'
+SAMPLE_WRITE_RANGE = 'A3:H'
 
 #function to read data from a google spreadsheet with id MY_GOOGLE_SHEET_ID
 #code written according to google's api (https://developers.google.com/sheets/api/quickstart/python)
@@ -83,10 +83,15 @@ def export_data_to_sheets(df):
             majorDimension='ROWS',
             values=df.T.reset_index().T.values.tolist())
         ).execute()
-    print('Sheet successfully Updated')
 
 def main():
+    print("Initializing...")
+
     read_spreadsheet()
+
+    print("Spreadsheet successfully read.")
+
+    print("Creating dataframe...")
 
     #fill missing values in all cells with NaN
     #necessary to create pandas dataframe
@@ -97,17 +102,22 @@ def main():
     #create dataframe
     df=pd.DataFrame(values_input[3:], columns=values_input[2])
 
+    print("Dataframe created.")
     #print(df)
 
     #extract the number of total classes in a semester
     global total_classes
     total_classes = int("".join(filter(str.isdigit, values_input[1][0])))
 
+    print("Grading students...")
     #grade every student
     df = df.apply(grade_student, axis=1)
 
     #print(df)
 
+    print("Writing computed values to spreadsheet...")
     export_data_to_sheets(df)
+
+    print("Done. You may check the resulting spreadsheet in the following link: https://docs.google.com/spreadsheets/d/1DCZ5lmPCBybMiWXyG7tscTj0YJlmwOZQU1eT_9NlZmg/edit?usp=sharing")
 
 main()

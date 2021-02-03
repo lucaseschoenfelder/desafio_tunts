@@ -12,3 +12,6 @@ python3 script.py
 * **Google Client Library:** `python3 -m pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib`
 * **Pandas:** `python3 -m pip install pandas`
 * **Numpy:** `python3 -m pip install numpy`
+
+##Link to spreadsheet
+https://docs.google.com/spreadsheets/d/1DCZ5lmPCBybMiWXyG7tscTj0YJlmwOZQU1eT_9NlZmg/edit#gid=0

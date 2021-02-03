@@ -7,15 +7,12 @@ import pickle
 import numpy as np
 import math
 
-# The ID and range of a sample spreadsheet.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-MY_GOOGLE_SHEET_ID = '1DCZ5lmPCBybMiWXyG7tscTj0YJlmwOZQU1eT_9NlZmg'
-SAMPLE_READ_RANGE = 'A1:H'
+SHEET_ID = '1DCZ5lmPCBybMiWXyG7tscTj0YJlmwOZQU1eT_9NlZmg'
+READ_RANGE = 'A1:H'
+WRITE_RANGE = 'G4:H'
 
-#Write range is different since the first two rows are headers
-SAMPLE_WRITE_RANGE = 'A3:H'
-
-#function to read data from a google spreadsheet with id MY_GOOGLE_SHEET_ID
+#function to read data from a google spreadsheet with id SHEET_ID
 #code written according to google's api (https://developers.google.com/sheets/api/quickstart/python)
 def read_spreadsheet():
     global values_input, service
@@ -42,14 +39,14 @@ def read_spreadsheet():
 
     # Call the Sheets API
     sheet = service.spreadsheets()
-    result_input = sheet.values().get(spreadsheetId=MY_GOOGLE_SHEET_ID,
-                                range=SAMPLE_READ_RANGE).execute()
+    result_input = sheet.values().get(spreadsheetId=SHEET_ID,
+                                range=READ_RANGE).execute()
     values_input = result_input.get('values', [])
 
     if not values_input and not values_expansion:
         print('No data found.')
 
-#function to calculate the minimum score necessary to get a passing grade (>=5)
+#function to calculate the minimum score necessary to get a passing grade (>=50)
 #rounds up to the nearest integer
 def calc_final_score(mean_score):
     return math.ceil(100 - mean_score)
@@ -76,12 +73,12 @@ def grade_student (student):
 
 def export_data_to_sheets(df):
     response_date = service.spreadsheets().values().update(
-        spreadsheetId=MY_GOOGLE_SHEET_ID,
+        spreadsheetId=SHEET_ID,
         valueInputOption='RAW',
-        range=SAMPLE_WRITE_RANGE,
+        range=WRITE_RANGE,
         body=dict(
             majorDimension='ROWS',
-            values=df.T.reset_index().T.values.tolist())
+            values=df.T.reset_index().T.values[1:, 6:8].tolist())
         ).execute()
 
 def main():
@@ -118,6 +115,8 @@ def main():
     print("Writing computed values to spreadsheet...")
     export_data_to_sheets(df)
 
-    print("Done. You may check the resulting spreadsheet in the following link: https://docs.google.com/spreadsheets/d/1DCZ5lmPCBybMiWXyG7tscTj0YJlmwOZQU1eT_9NlZmg/edit?usp=sharing")
+    link_to_spreadsheet = "https://docs.google.com/spreadsheets/d/{}/edit?usp=sharing".format(SHEET_ID)
+
+    print("Done. You may check the resulting spreadsheet in the following link:", link_to_spreadsheet)
 
 main()

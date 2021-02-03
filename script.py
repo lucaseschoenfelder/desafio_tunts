@@ -52,22 +52,22 @@ def read_spreadsheet():
 #function to calculate the minimum score necessary to get a passing grade (>=5)
 #rounds up to the nearest integer
 def calc_final_score(mean_score):
-    return math.ceil(10 - mean_score)
+    return math.ceil(100 - mean_score)
 
 #function to grade student based on their mean test score
 def grade_student (student):
     absence = int(student[2])
 
-    if (absence / total_classes >= 0.25):
+    if (absence / total_classes > 0.25):
         student[6] = "Reprovado por Falta"
         student[7] = 0
     else:
-        mean_score = sum([int(x) for x in student[3:6]]) / 30
-        if (mean_score >= 7):
+        mean_score = sum([int(x) for x in student[3:6]]) / 3
+        if (mean_score >= 70):
             student[6] = "Aprovado"
             student[7] = 0
-        elif (mean_score >= 5):
-            student[6] = "Exame final"
+        elif (mean_score >= 50):
+            student[6] = "Exame Final"
             student[7] = calc_final_score(mean_score)
         else:
             student[6] = "Reprovado"
